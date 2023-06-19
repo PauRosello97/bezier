@@ -12,9 +12,32 @@ function App() {
     setC({ x: clientX, y: clientY });
   }
 
-  function calculateY(x, x0, x1, x2, y0, y1, y2) {
-    // Solve for t using the quadratic formula
-    const A = x0 - 2 * x1 + x2;
+  function calculateY(x, a, b, c) {
+    const { x: x0, y: y0 } = a;
+    const { x: x1, y: y1 } = c;
+    const { x: x2, y: y2 } = b;
+
+    const A = x0 - 2 * x1 + x2;    
+
+    // A === 0 means control point c is horizontally aligned with a and b
+    if (A === 0) {
+      
+      // Control point c is also vertically aligned with a and b, hence it is linear
+      if (y1 === (y0 + y2)/2) {
+        
+        // Calculate y(x) using linear interpolation between a and b
+        const t = (x - x0) / (x2 - x0);
+        const y = y0 + t * (y2 - y0);
+        return y;
+      } else {
+        // Control point c is not vertically aligned with a and b, hence it is a curve
+        // Calculate y(x) using the given quadratic Bezier curve equation
+        const t = (x - x0) / (x2 - x0);
+        const y = Math.pow(1 - t, 2) * y0 + 2 * (1 - t) * t * y1 + Math.pow(t, 2) * y2;
+        return y;
+      }
+    }
+
     const B = 2 * x1 - 2 * x0;
     const C = x0 - x;
   
@@ -43,8 +66,8 @@ function App() {
 
     for (let i = 0; i < nPoints; i++) {
       const t = i / (nPoints - 1); // Calculate the parameter 't' for equally spaced points
-      const x = t*400;
-      const y = calculateY(x, a.x, c.x, b.x, a.y, c.y, b.y)
+      const x = t * 400;
+      const y = calculateY(x, a, b, c)
       elements.push(<circle key={i} cx={x} cy={y} r="10" fill="red" />);
     }
 
